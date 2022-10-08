@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id             String      @id @default(uuid())
+  name           String
+  price          Decimal
+  unit           ProductUnit @default(UN)
+  description    String?     @default("")
+  src            String?     @default("")
+  category       Category?   @relation(fields: [categoryId], references: [name])
+  validate_stock Boolean     @default(false)
+  use_card       Boolean     @default(false)
+  categoryId     String
+  Stock          Stock?      @relation(fields: [stockId], references: [id])
+  stockId        String?
+
+  create_at DateTime @default(now())
+  Order     Order?   @relation(fields: [orderId], references: [id])
+  orderId   String?
+
+  @@map("products")
+}
+
+enum ProductUnit {
+  UN
+  KG
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  description String?
+  src         String
+  Product     Product[]
+  optionId    String
+
+  create_at DateTime @default(now())
+  Option    Option?  @relation(fields: [optionId], references: [id])
+  Extra     Extra?   @relation(fields: [extraId], references: [id])
+  extraId   String?
+
+  @@map("categories")
+}
+
+model Stock {
+  id       String    @id @default(uuid())
+  quant    Decimal
+  products Product[]
+
+  create_at DateTime @default(now())
+
+  @@map("stock")
+}
+
+//Options change to product 
+model Option {
+  id         String     @id @default(uuid())
+  option     String
+  categories Category[]
+
+  create_at DateTime @default(now())
+
+  @@map("options")
+}
+
+model Extra {
+  id         String     @id @default(uuid())
+  option     String
+  categories Category[]
+
+  create_at DateTime @default(now())
+
+  @@map("extras")
+}
+
+enum PayOption {
+  MBWAY
+  DINHEIRO
+}
+
+model Order {
+  id        String    @id @default(uuid())
+  client    String
+  table     String
+  validate  Boolean   @default(false)
+  paymethod PayOption @default(DINHEIRO)
+  total_pay Decimal
+  products  Product[]
+
+  create_at DateTime @default(now())
+
+  @@map("orders")
+}
